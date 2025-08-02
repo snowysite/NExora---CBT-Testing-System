@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NExora - Budget Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+</head>
+<body class="bg-black text-white min-h-screen">
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="loader mx-auto mb-6"></div>
+            <h2 class="text-3xl font-bold text-orangered mb-2">NExora</h2>
+            <p class="text-gray-400">Loading Budget Calculator...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-3xl font-bold text-orangered">NExora</h1>
+                    <span class="text-gray-400">|</span>
+                    <span class="text-xl font-semibold">Budget Calculator</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="exportData()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm transition-colors">
+                        Export Data
+                    </button>
+                    <button onclick="resetCalculator()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm transition-colors">
+                        Reset All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Dashboard Overview -->
+        <div class="grid lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gray-900 rounded-2xl p-6 card-hover slide-up">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-300">Total Income</h3>
+                    <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-green-400 counter" id="total-income">$0.00</p>
+                <p class="text-sm text-gray-400 mt-2">Monthly income</p>
+            </div>
+
+            <div class="bg-gray-900 rounded-2xl p-6 card-hover slide-up" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-300">Total Expenses</h3>
+                    <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-red-400 counter" id="total-expenses">$0.00</p>
+                <p class="text-sm text-gray-400 mt-2">Monthly expenses</p>
+            </div>
+
+            <div class="bg-gray-900 rounded-2xl p-6 card-hover slide-up" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-300">Net Balance</h3>
+                    <div class="w-12 h-12 bg-orangered rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-orangered counter" id="net-balance">$0.00</p>
+                <p class="text-sm text-gray-400 mt-2">Remaining budget</p>
+            </div>
+
+            <div class="bg-gray-900 rounded-2xl p-6 card-hover slide-up" style="animation-delay: 0.3s">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-300">Savings Rate</h3>
+                    <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-blue-400 counter" id="savings-rate">0%</p>
+                <p class="text-sm text-gray-400 mt-2">Of total income</p>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Income Section -->
+            <div class="bg-gray-900 rounded-2xl p-6 scale-in">
+                <h3 class="text-xl font-bold text-green-400 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Income Sources
+                </h3>
+                
+                <form id="income-form" class="mb-6">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <input type="text" id="income-source" placeholder="Income source" class="p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-400 focus:outline-none input-focus" required>
+                        <input type="number" id="income-amount" placeholder="Amount" step="0.01" class="p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-400 focus:outline-none input-focus" required>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">
+                        Add Income
+                    </button>
+                </form>
+                
+                <div id="income-list" class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar">
+                    <div class="text-center text-gray-400 py-4">
+                        <p>No income sources added yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="bg-gray-900 rounded-2xl p-6 scale-in" style="animation-delay: 0.1s">
+                <h3 class="text-xl font-bold text-red-400 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                    </svg>
+                    Expenses
+                </h3>
+                
+                <form id="expense-form" class="mb-6">
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        <input type="text" id="expense-category" placeholder="Expense category" class="p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-red-400 focus:outline-none input-focus" required>
+                        <input type="number" id="expense-amount" placeholder="Amount" step="0.01" class="p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-red-400 focus:outline-none input-focus" required>
+                        <select id="expense-type" class="p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-red-400 focus:outline-none">
+                            <option value="fixed">Fixed Expense</option>
+                            <option value="variable">Variable Expense</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">
+                        Add Expense
+                    </button>
+                </form>
+                
+                <div id="expense-list" class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar">
+                    <div class="text-center text-gray-400 py-4">
+                        <p>No expenses added yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget Analysis -->
+            <div class="bg-gray-900 rounded-2xl p-6 scale-in" style="animation-delay: 0.2s">
+                <h3 class="text-xl font-bold text-orangered mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Budget Analysis
+                </h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span>Budget Health</span>
+                            <span id="budget-health-percent">0%</span>
+                        </div>
+                        <div class="bg-gray-700 rounded-full h-3">
+                            <div id="budget-health-bar" class="bg-orangered h-3 rounded-full progress-animate" style="width: 0%"></div>
+                        </div>
+                        <p id="budget-status" class="text-sm text-gray-400 mt-2">Add income and expenses to see analysis</p>
+                    </div>
+                    
+                    <div class="bg-gray-800 rounded-lg p-4">
+                        <h4 class="font-semibold mb-3 text-orangered">Recommendations</h4>
+                        <div id="recommendations" class="text-sm text-gray-300 space-y-2">
+                            <p>• Add your income sources to get started</p>
+                            <p>• Track both fixed and variable expenses</p>
+                            <p>• Aim for 20% savings rate</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-800 rounded-lg p-4">
+                        <h4 class="font-semibold mb-3 text-orangered">Quick Actions</h4>
+                        <div class="space-y-2">
+                            <button onclick="setGoal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                Set Savings Goal
+                            </button>
+                            <button onclick="generateReport()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                Generate Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid lg:grid-cols-2 gap-8 mt-8">
+            <div class="bg-gray-900 rounded-2xl p-6 fade-in">
+                <h3 class="text-xl font-bold text-orangered mb-6">Expense Breakdown</h3>
+                <div class="h-64">
+                    <canvas id="expense-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="bg-gray-900 rounded-2xl p-6 fade-in">
+                <h3 class="text-xl font-bold text-orangered mb-6">Income vs Expenses</h3>
+                <div class="h-64">
+                    <canvas id="comparison-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Setting Modal -->
+    <div id="goal-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 scale-in">
+            <h3 class="text-2xl font-bold text-orangered mb-6">Set Savings Goal</h3>
+            <form id="goal-form">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Goal Amount ($)</label>
+                        <input type="number" id="goal-amount" step="0.01" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-orangered focus:outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Target Date</label>
+                        <input type="date" id="goal-date" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-orangered focus:outline-none" required>
+                    </div>
+                    <div class="flex space-x-4 pt-4">
+                        <button type="button" onclick="closeGoalModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 bg-orangered hover:bg-red-600 text-white py-3 rounded-lg transition-colors">
+                            Set Goal
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let incomes = JSON.parse(localStorage.getItem('nexora-incomes')) || [];
+        let expenses = JSON.parse(localStorage.getItem('nexora-expenses')) || [];
+        let savingsGoal = JSON.parse(localStorage.getItem('nexora-goal')) || null;
+        let expenseChart, comparisonChart;
+
+        // Initialize app
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    initializeApp();
+                }, 500);
+            }, 1500); // Reduced loader time
+        });
+
+        function initializeApp() {
+            renderIncomes();
+            renderExpenses();
+            updateDashboard();
+            initializeCharts();
+            
+            // Add event listeners
+            document.getElementById('income-form').addEventListener('submit', addIncome);
+            document.getElementById('expense-form').addEventListener('submit', addExpense);
+            document.getElementById('goal-form').addEventListener('submit', setSavingsGoal);
+        }
+
+        // Income management
+        function addIncome(e) {
+            e.preventDefault();
+            console.log('Add income function called'); // Debug log
+            
+            const source = document.getElementById('income-source').value.trim();
+            const amount = parseFloat(document.getElementById('income-amount').value);
+            
+            console.log('Source:', source, 'Amount:', amount); // Debug log
+
+            if (source && amount > 0) {
+                const newIncome = {
+                    id: Date.now(),
+                    source: source,
+                    amount: amount,
+                    createdAt: new Date().toISOString()
+                };
+
+                incomes.push(newIncome);
+                console.log('Income added:', newIncome); // Debug log
+                saveData();
+                renderIncomes();
+                updateDashboard();
+                
+                // Reset form
+                document.getElementById('income-form').reset();
+                
+                // Show success animation
+                showNotification('Income added successfully!', 'success');
+            } else {
+                console.log('Invalid input - source or amount missing'); // Debug log
+                showNotification('Please enter both income source and amount', 'error');
+            }
+        }
+
+        function renderIncomes() {
+            const container = document.getElementById('income-list');
+            
+            if (incomes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 py-4">
+                        <p>No income sources added yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = incomes.map(income => `
+                <div class="bg-gray-800 p-4 rounded-lg flex justify-between items-center fade-in">
+                    <div>
+                        <p class="font-semibold">${income.source}</p>
+                        <p class="text-sm text-gray-400">${formatDate(income.createdAt)}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-green-400 font-bold">$${income.amount.toFixed(2)}</span>
+                        <button onclick="deleteIncome(${income.id})" class="text-red-400 hover:text-red-300 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteIncome(id) {
+            incomes = incomes.filter(income => income.id !== id);
+            saveData();
+            renderIncomes();
+            updateDashboard();
+            showNotification('Income deleted', 'info');
+        }
+
+        // Expense management
+        function addExpense(e) {
+            e.preventDefault();
+            console.log('Add expense function called'); // Debug log
+            
+            const category = document.getElementById('expense-category').value.trim();
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const type = document.getElementById('expense-type').value;
+            
+            console.log('Category:', category, 'Amount:', amount, 'Type:', type); // Debug log
+
+            if (category && amount > 0) {
+                const newExpense = {
+                    id: Date.now(),
+                    category: category,
+                    amount: amount,
+                    type: type,
+                    createdAt: new Date().toISOString()
+                };
+
+                expenses.push(newExpense);
+                console.log('Expense added:', newExpense); // Debug log
+                saveData();
+                renderExpenses();
+                updateDashboard();
+                
+                // Reset form
+                document.getElementById('expense-form').reset();
+                
+                showNotification('Expense added successfully!', 'success');
+            } else {
+                console.log('Invalid input - category or amount missing'); // Debug log
+                showNotification('Please enter both expense category and amount', 'error');
+            }
+        }
+
+        function renderExpenses() {
+            const container = document.getElementById('expense-list');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 py-4">
+                        <p>No expenses added yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = expenses.map(expense => `
+                <div class="bg-gray-800 p-4 rounded-lg fade-in">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <p class="font-semibold">${expense.category}</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs px-2 py-1 rounded-full ${expense.type === 'fixed' ? 'bg-blue-600' : 'bg-yellow-600'}">${expense.type.toUpperCase()}</span>
+                                <span class="text-sm text-gray-400">${formatDate(expense.createdAt)}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-red-400 font-bold">$${expense.amount.toFixed(2)}</span>
+                            <button onclick="deleteExpense(${expense.id})" class="text-red-400 hover:text-red-300 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(expense => expense.id !== id);
+            saveData();
+            renderExpenses();
+            updateDashboard();
+            showNotification('Expense deleted', 'info');
+        }
+
+        // Dashboard updates
+        function updateDashboard() {
+            const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const netBalance = totalIncome - totalExpenses;
+            const savingsRate = totalIncome > 0 ? ((netBalance / totalIncome) * 100) : 0;
+
+            // Animate counter updates
+            animateCounter('total-income', totalIncome, '$');
+            animateCounter('total-expenses', totalExpenses, '$');
+            animateCounter('net-balance', netBalance, '$');
+            animateCounter('savings-rate', savingsRate, '%');
+
+            // Update budget health
+            updateBudgetHealth(totalIncome, totalExpenses, netBalance);
+            updateRecommendations(totalIncome, totalExpenses, savingsRate);
+            updateCharts();
+        }
+
+        function animateCounter(elementId, targetValue, prefix = '') {
+            const element = document.getElementById(elementId);
+            const startValue = parseFloat(element.textContent.replace(/[^0-9.-]/g, '')) || 0;
+            const duration = 1000;
+            const startTime = performance.now();
+
+            function updateCounter(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const currentValue = startValue + (targetValue - startValue) * progress;
+                
+                if (prefix === '$') {
+                    element.textContent = `$${currentValue.toFixed(2)}`;
+                } else if (prefix === '%') {
+                    element.textContent = `${currentValue.toFixed(1)}%`;
+                } else {
+                    element.textContent = currentValue.toFixed(2);
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                }
+            }
+
+            requestAnimationFrame(updateCounter);
+        }
+
+        function updateBudgetHealth(income, expenses, balance) {
+            const healthPercent = income > 0 ? Math.max(0, Math.min(100, (balance / income) * 100)) : 0;
+            
+            document.getElementById('budget-health-percent').textContent = `${healthPercent.toFixed(1)}%`;
+            document.getElementById('budget-health-bar').style.width = `${healthPercent}%`;
+            
+            let status, color;
+            if (healthPercent >= 20) {
+                status = 'Excellent! You\'re saving well.';
+                color = 'text-green-400';
+            } else if (healthPercent >= 10) {
+                status = 'Good budget management.';
+                color = 'text-yellow-400';
+            } else if (healthPercent >= 0) {
+                status = 'Consider reducing expenses.';
+                color = 'text-orange-400';
+            } else {
+                status = 'Budget deficit - immediate action needed!';
+                color = 'text-red-400';
+            }
+            
+            const statusElement = document.getElementById('budget-status');
+            statusElement.textContent = status;
+            statusElement.className = `text-sm mt-2 ${color}`;
+        }
+
+        function updateRecommendations(income, expenses, savingsRate) {
+            const recommendations = [];
+            
+            if (income === 0) {
+                recommendations.push('• Add your income sources to get started');
+            }
+            
+            if (expenses === 0) {
+                recommendations.push('• Track your monthly expenses');
+            }
+            
+            if (savingsRate < 10) {
+                recommendations.push('• Try to save at least 10% of your income');
+            }
+            
+            if (savingsRate < 20 && savingsRate >= 10) {
+                recommendations.push('• Great start! Aim for 20% savings rate');
+            }
+            
+            if (savingsRate >= 20) {
+                recommendations.push('• Excellent savings rate! Consider investing');
+            }
+            
+            const fixedExpenses = expenses.filter(e => e.type === 'fixed').reduce((sum, e) => sum + e.amount, 0);
+            if (fixedExpenses > income * 0.5) {
+                recommendations.push('• Fixed expenses are high - review subscriptions');
+            }
+            
+            if (recommendations.length === 0) {
+                recommendations.push('• Your budget looks healthy!');
+                recommendations.push('• Consider setting long-term financial goals');
+            }
+            
+            document.getElementById('recommendations').innerHTML = recommendations.join('<br>');
+        }
+
+        // Charts
+        function initializeCharts() {
+            const ctx1 = document.getElementById('expense-chart').getContext('2d');
+            const ctx2 = document.getElementById('comparison-chart').getContext('2d');
+
+            expenseChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#FF4500', '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#ffffff' }
+                        }
+                    }
+                }
+            });
+
+            comparisonChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Income', 'Expenses', 'Savings'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#10b981', '#ef4444', '#FF4500']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#ffffff' }
+                        },
+                        x: {
+                            ticks: { color: '#ffffff' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Update expense chart
+            const expenseCategories = {};
+            expenses.forEach(expense => {
+                expenseCategories[expense.category] = (expenseCategories[expense.category] || 0) + expense.amount;
+            });
+
+            expenseChart.data.labels = Object.keys(expenseCategories);
+            expenseChart.data.datasets[0].data = Object.values(expenseCategories);
+            expenseChart.update();
+
+            // Update comparison chart
+            const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const savings = totalIncome - totalExpenses;
+
+            comparisonChart.data.datasets[0].data = [totalIncome, totalExpenses, Math.max(0, savings)];
+            comparisonChart.update();
+        }
+
+        // Goal setting
+        function setGoal() {
+            document.getElementById('goal-modal').classList.remove('hidden');
+        }
+
+        function closeGoalModal() {
+            document.getElementById('goal-modal').classList.add('hidden');
+        }
+
+        function setSavingsGoal(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('goal-amount').value);
+            const date = document.getElementById('goal-date').value;
+
+            savingsGoal = { amount, date };
+            localStorage.setItem('nexora-goal', JSON.stringify(savingsGoal));
+            
+            closeGoalModal();
+            showNotification('Savings goal set successfully!', 'success');
+        }
+
+        // Utility functions
+        function saveData() {
+            localStorage.setItem('nexora-incomes', JSON.stringify(incomes));
+            localStorage.setItem('nexora-expenses', JSON.stringify(expenses));
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 slide-up ${
+                type === 'success' ? 'bg-green-600' : 
+                type === 'error' ? 'bg-red-600' : 'bg-blue-600'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function exportData() {
+            const data = {
+                incomes,
+                expenses,
+                savingsGoal,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'nexora-budget-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Data exported successfully!', 'success');
+        }
+
+        function resetCalculator() {
+            if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                incomes = [];
+                expenses = [];
+                savingsGoal = null;
+                
+                localStorage.removeItem('nexora-incomes');
+                localStorage.removeItem('nexora-expenses');
+                localStorage.removeItem('nexora-goal');
+                
+                renderIncomes();
+                renderExpenses();
+                updateDashboard();
+                
+                showNotification('All data has been reset', 'info');
+            }
+        }
+
+        function generateReport() {
+            const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const netBalance = totalIncome - totalExpenses;
+            
+            const report = `
+NExora Budget Report
+Generated: ${new Date().toLocaleDateString()}
+
+SUMMARY:
+Total Income: $${totalIncome.toFixed(2)}
+Total Expenses: $${totalExpenses.toFixed(2)}
+Net Balance: $${netBalance.toFixed(2)}
+Savings Rate: ${totalIncome > 0 ? ((netBalance / totalIncome) * 100).toFixed(1) : 0}%
+
+INCOME SOURCES:
+${incomes.map(income => `• ${income.source}: $${income.amount.toFixed(2)}`).join('\n')}
+
+EXPENSES:
+${expenses.map(expense => `• ${expense.category} (${expense.type}): $${expense.amount.toFixed(2)}`).join('\n')}
+            `;
+            
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'nexora-budget-report.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Report generated successfully!', 'success');
+        }
+
+        // Close modal on outside click
+        document.getElementById('goal-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGoalModal();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968bf1c283ee0088',t:'MTc1NDEyMDYwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
